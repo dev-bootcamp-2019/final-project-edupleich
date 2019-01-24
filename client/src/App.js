@@ -5,7 +5,7 @@ import getWeb3 from "./utils/getWeb3";
 import "./App.css";
 
 class App extends Component {
-  state = { storageValue: 0, web3: null, accounts: null, contract: null };
+  state = { web3: null, accounts: null, contract: null };
 
   componentDidMount = async () => {
     try {
@@ -46,40 +46,39 @@ class App extends Component {
     e.preventDefault();
   };
 
-  handlePictureUpload = (e) => {
-    console.log('gulp');
+  handleContractRegistry = async () => {
+    const { accounts, contract, imagePreviewUrl } = this.state;
+    const pictureHash = this.state.web3.utils.keccak256(imagePreviewUrl);
+    try {
+      const response = await contract.methods.registerHash(pictureHash).send({ from: accounts[0] });
+      debugger;
+      this.setState({
+        isLoading: false,
+        storageValue: response
+      });
+    } catch (error) {
+      console.error(error);
+      this.setState({
+        isLoading: false
+      })
+    }
   };
 
-  // handlePictureChange = (e) => {
-  //   e.preventDefault();
-  //   let reader = new FileReader();
-  //   let file = e.target.files[0];
-  //   reader.onloadend = () => {
-  //     this.setState({
-  //       file: file,
-        
-  //       imagePreviewUrl: reader.result
-  //     });
-  //   }
-  //   reader.readAsDataURL(file)
-  // }
+  handlePictureUpload = (event) => {
+    event.stopPropagation();
+    event.preventDefault();
+    this.setState({
+      isLoading: true,
+    }, this.handleContractRegistry)
+  }
 
   handlePictureChange = (event) => {
     event.stopPropagation();
     event.preventDefault();
     const file = event.target.files[0];
-    debugger;
-    let buffer_reader = new FileReader();
     let url_reader = new FileReader();
-    buffer_reader.readAsArrayBuffer(file);
     url_reader.readAsDataURL(file);
-    buffer_reader.onloadend = () => this.convertToBuffer(buffer_reader);
     url_reader.onloadend = () => this.saveImageUrl(url_reader);
-  }
-
-  convertToBuffer = async (reader) => {
-    const buffer = await Buffer.from(reader.result);
-    this.setState({buffer})
   }
 
   saveImageUrl = reader => {
@@ -101,25 +100,24 @@ class App extends Component {
     }
     return (
       <div className="App">
-        <h1>Good to Go!</h1>
-        <p>Your Truffle Box is installed and ready.</p>
-        <h2>Smart Contract Example</h2>
+        <h1>PictureProof</h1>
+        <p>by edupleich</p>
+        <h2>Consensys Academy 2018-2019 Final Project</h2>
         <p>
-          If your contracts compiled and migrated successfully, below will show
-          a stored value of 5 (by default).
+          This dapp is a <strong>Proof-of-Existence</strong> for pictures. Upload an image and it will get registered in the contract.
         </p>
-        <p>
-          Try changing the value stored on <strong>line 40</strong> of App.js.
-        </p>
-        <div>The stored value is: {this.state.storageValue}</div>
-        <form onSubmit={(e) => this.handleSubmit(e)}>
-          <input className="fileInput"
-            type="file"
-            onChange={(e) => this.handlePictureChange(e)} />
-          <button className="submitButton"
-            type="submit"
-            onClick={(e) => this.handlePictureUpload(e)}>Upload Image</button>
-        </form>
+        {
+          this.state.isLoading
+            ? <div><p>...executing contract...</p></div>
+            : <form onSubmit={(e) => this.handleSubmit(e)}>
+                <input className="fileInput"
+                  type="file"
+                  onChange={(e) => this.handlePictureChange(e)} />
+                <button className="submitButton"
+                  type="submit"
+                  onClick={(e) => this.handlePictureUpload(e)}>Upload Image</button>
+            </form>
+        }
         <div className="imgPreview">
           {$imagePreview}
         </div>
