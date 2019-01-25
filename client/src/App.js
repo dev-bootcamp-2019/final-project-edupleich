@@ -5,7 +5,11 @@ import getWeb3 from "./utils/getWeb3";
 import "./App.css";
 
 class App extends Component {
-  state = { web3: null, accounts: null, contract: null };
+  state = { 
+    web3: null, accounts: null, contract: null,
+    addr2search: null, isLoading: false, success: false,
+    showUploadMode: true, error: false
+   };
 
   componentDidMount = async () => {
     try {
@@ -42,24 +46,54 @@ class App extends Component {
     }
   };
 
-  handleSubmit = (e) => {
-    e.preventDefault();
-  };
-
-  handleContractRegistry = async () => {
+  contractRegister = async () => {
     const { accounts, contract, imagePreviewUrl } = this.state;
     const pictureHash = this.state.web3.utils.keccak256(imagePreviewUrl);
+    let success = false;
+    let error = true;
     try {
       const response = await contract.methods.registerHash(pictureHash).send({ from: accounts[0] });
-      debugger;
+      if (response.events['Registration']) {
+        success = true;
+        error = false;
+      }
       this.setState({
         isLoading: false,
-        storageValue: response
+        success,
+        error
       });
     } catch (error) {
       console.error(error);
       this.setState({
-        isLoading: false
+        isLoading: false,
+        error,
+        success
+      })
+    }
+  };
+
+  contractRegistryLookUp = async () => {
+    const { accounts, contract, imagePreviewUrl } = this.state;
+    const pictureHash = this.state.web3.utils.keccak256(imagePreviewUrl);
+    let success = false;
+    let error = true;
+    try {
+      const response = await contract.methods.checkRegistration(pictureHash).send({ from: accounts[0] });
+      if (response.logs[0].event === "Registration") {
+        success = true;
+        error = false;
+      }
+      this.setState({
+        isLoading: false,
+        success,
+        error
+      });
+    } catch (error) {
+      console.error(error);
+      this.setState({
+        isLoading: false,
+        error,
+        success
       })
     }
   };
@@ -69,7 +103,7 @@ class App extends Component {
     event.preventDefault();
     this.setState({
       isLoading: true,
-    }, this.handleContractRegistry)
+    }, this.contractRegister)
   }
 
   handlePictureChange = (event) => {
@@ -79,6 +113,18 @@ class App extends Component {
     let url_reader = new FileReader();
     url_reader.readAsDataURL(file);
     url_reader.onloadend = () => this.saveImageUrl(url_reader);
+  }
+
+  handleAddr2Change = e => {
+    this.setState({addr2search: e.target.value});
+  }
+
+  handleAddr2LookUp = e => {
+    e.stopPropagation();
+    e.preventDefault();
+    this.setState({
+      isLoading: true,
+    }, this.contractRegistryLookUp)
   }
 
   saveImageUrl = reader => {
@@ -91,7 +137,7 @@ class App extends Component {
     if (!this.state.web3) {
       return <div>Loading Web3, accounts, and contract...</div>;
     }
-    let { imagePreviewUrl } = this.state;
+    const { imagePreviewUrl, showUploadMode, success, isLoading } = this.state;
     let $imagePreview = null;
     if (imagePreviewUrl) {
       $imagePreview = (<img src={imagePreviewUrl} />);
@@ -106,25 +152,69 @@ class App extends Component {
         <p>
           This dapp is a <strong>Proof-of-Existence</strong> for pictures. Upload an image and it will get registered in the contract.
         </p>
-        {
-          this.state.isLoading
-            ? <div><p>...executing contract...</p></div>
-            : <form onSubmit={(e) => this.handleSubmit(e)}>
-                <input className="fileInput"
-                  type="file"
-                  onChange={(e) => this.handlePictureChange(e)} />
-                <button className="submitButton"
-                  type="submit"
-                  onClick={(e) => this.handlePictureUpload(e)}>Upload Image</button>
-            </form>
+        { (isLoading || success) ?
+          <MsgComponent success={success} /> :
+          <ActionForm
+          handleAddr2Change={this.handleAddr2Change}
+          handleAddr2LookUp={this.handleAddr2LookUp}
+          handlePictureChange={this.handlePictureChange}
+          handlePictureUpload={this.handlePictureUpload}
+          showUploadMode={showUploadMode}/>
         }
-        <div className="imgPreview">
-          {$imagePreview}
-        </div>
-
+        {showUploadMode && <div className="imgPreview">
+        {$imagePreview}
+        </div>}
+        <br />
+        <button
+          className="leftButton"
+          onClick={() => this.setState({showUploadMode: !this.state.showUploadMode})}>
+          {showUploadMode ?'check picture registration': 'upload picture'}
+        </button>
+        <br />
       </div>
     );
   }
 }
 
 export default App;
+
+// static components
+const ActionForm =  (props) => {
+  if (props.showUploadMode) {
+    return (
+      <form onSubmit={(e) => e.preventDefault()}>
+        <input className="fileInput"
+          type="file"
+          onChange={(e) => props.handlePictureChange(e)} />
+        <button className="submitButton"
+          type="submit"
+          onClick={(e) => props.handlePictureUpload(e)}>Upload Image</button>
+      </form>
+    );  
+  } else {
+    return (
+      <form onSubmit={(e) => e.preventDefault()}>
+        <input className="fileInput"
+          type="text"
+          onChange={(e) => props.handleAddr2Change(e)} />
+        <button className="submitButton"
+          type="submit"
+          onClick={(e) => props.handleAddr2LookUp(e)}>look up address</button>
+      </form>
+    ); 
+  }
+};
+
+const MsgComponent = ({success}) => {
+  const msg = success ?
+          'Picture succesfully registered!' :
+          '...executing contract...'
+  return (
+    <div>
+      <p>{msg}</p>
+      {success && 
+        <div><button className="submitButton">register another one</button></div>
+      }
+    </div>
+  );
+}
