@@ -135,12 +135,18 @@ contract PictureProof is Pausable {
     /** An external view method that simply returns the length of the registry array. This
         function is necessary for the UI to iterate through every registration in the registry array
     */
-    function getRegistrationCount()
+    function getRegistrationCount(address _owner)
         external
         view
         returns (uint)
     {
-        return registry.length;
+        uint count = 0;
+        for (uint idx=0; idx < registry.length; idx++){
+            if (registry[idx].owner == _owner){
+                count++;
+            }
+        }
+        return count;
     }
 
     /** An internal view method that checks whether a registration for a given keccak256 hash exists.

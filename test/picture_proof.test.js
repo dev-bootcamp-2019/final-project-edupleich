@@ -20,7 +20,17 @@ contract(PictureProof, accounts => {
         const result = await pictureProof.fetchPicture.call(0);
         assert(eventEmitted, true, 'registering picture should emit event');
         assert.equal(web3.utils.toHex(result[0]), web3.utils.sha3(hash_random), 'Hashes do not match');
-    });   
+    });
+
+    it("should return amount of registered pictures by user", async () => {
+        const pictureProof = await PictureProof.deployed();
+        const hash_random1 = randomHash();
+
+        const tx1 = await pictureProof.register(hash_random1, { from: owner });
+
+        const result = await pictureProof.getRegistrationCount(owner);
+        assert.equal("2", result.toString(), 'number of pictures don\'t match');
+    });
 });
 
 function randomHash() {
