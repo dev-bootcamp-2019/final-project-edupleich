@@ -1,0 +1,27 @@
+{
+  "name": "picture_proof",
+  "version": "1.0.0",
+  "description": "This is a proof-of-existence contract that registers an image to an address with the corresponding timestamp.",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "openzeppelin-solidity": "^2.1.2",
+    "truffle-hdwallet-provider": "^1.0.0-web3one.5"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dev-bootcamp-2019/final-project-edupleich.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dev-bootcamp-2019/final-project-edupleich/issues"
+  },
+  "homepage": "https://github.com/dev-bootcamp-2019/final-project-edupleich#readme"
+}
