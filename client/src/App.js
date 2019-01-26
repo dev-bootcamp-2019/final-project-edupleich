@@ -8,7 +8,7 @@ class App extends Component {
   state = { 
     web3: null, accounts: null, contract: null,
     addr2search: null, isLoading: false, success: false,
-    showUploadMode: true, error: false
+    showUploadMode: true, error: false, picCount: 0
    };
 
   componentDidMount = async () => {
@@ -73,27 +73,21 @@ class App extends Component {
   };
 
   contractRegistryLookUp = async () => {
-    const { accounts, contract, imagePreviewUrl } = this.state;
-    const pictureHash = this.state.web3.utils.keccak256(imagePreviewUrl);
-    let success = false;
-    let error = true;
+    const { accounts, contract } = this.state;
     try {
-      const response = await contract.methods.checkRegistration(pictureHash).send({ from: accounts[0] });
-      if (response.logs[0].event === "Registration") {
-        success = true;
-        error = false;
-      }
+      const response = await contract.methods.getRegistrationCount(accounts[0]).call();
       this.setState({
         isLoading: false,
-        success,
-        error
+        picCount: response,
+        success: true,
+        error: false
       });
     } catch (error) {
       console.error(error);
       this.setState({
         isLoading: false,
-        error,
-        success
+        error: true,
+        success: false
       })
     }
   };
@@ -137,7 +131,7 @@ class App extends Component {
     if (!this.state.web3) {
       return <div>Loading Web3, accounts, and contract...</div>;
     }
-    const { imagePreviewUrl, showUploadMode, success, isLoading } = this.state;
+    const { imagePreviewUrl, showUploadMode, success, isLoading, addr2search, picCount } = this.state;
     let $imagePreview = null;
     if (imagePreviewUrl) {
       $imagePreview = (<img src={imagePreviewUrl} />);
@@ -153,21 +147,27 @@ class App extends Component {
           This dapp is a <strong>Proof-of-Existence</strong> for pictures. Upload an image and it will get registered in the contract.
         </p>
         { (isLoading || success) ?
-          <MsgComponent success={success} /> :
+          <MsgComponent
+            success={success}
+            showUploadMode={showUploadMode}
+            picCount={picCount}
+            addr2search={addr2search}/> :
           <ActionForm
-          handleAddr2Change={this.handleAddr2Change}
-          handleAddr2LookUp={this.handleAddr2LookUp}
-          handlePictureChange={this.handlePictureChange}
-          handlePictureUpload={this.handlePictureUpload}
-          showUploadMode={showUploadMode}/>
+            handleAddr2Change={this.handleAddr2Change}
+            handleAddr2LookUp={this.handleAddr2LookUp}
+            handlePictureChange={this.handlePictureChange}
+            handlePictureUpload={this.handlePictureUpload}
+            showUploadMode={showUploadMode}/>
         }
-        {showUploadMode && <div className="imgPreview">
-        {$imagePreview}
-        </div>}
+        {showUploadMode && 
+          <div className="imgPreview">
+            {$imagePreview}
+          </div>
+        }
         <br />
         <button
           className="leftButton"
-          onClick={() => this.setState({showUploadMode: !this.state.showUploadMode})}>
+          onClick={() => this.setState({showUploadMode: !this.state.showUploadMode, success: false})}>
           {showUploadMode ?'check picture registration': 'upload picture'}
         </button>
         <br />
@@ -201,20 +201,38 @@ const ActionForm =  (props) => {
           type="submit"
           onClick={(e) => props.handleAddr2LookUp(e)}>look up address</button>
       </form>
-    ); 
+    );  
   }
 };
 
-const MsgComponent = ({success}) => {
-  const msg = success ?
-          'Picture succesfully registered!' :
-          '...executing contract...'
-  return (
-    <div>
-      <p>{msg}</p>
-      {success && 
-        <div><button className="submitButton">register another one</button></div>
-      }
-    </div>
-  );
+const MsgComponent = (props) => {
+  if (props.showUploadMode) {
+    const msg = props.success ?
+      'Picture succesfully registered!' :
+      '...executing contract...'
+    return (
+      <div>
+        <p>{msg}</p>
+        {props.success &&
+          <div><button className="submitButton">register another one</button></div>
+        }
+      </div>
+    );
+  } else {
+    if (props.success) {
+      return (
+        <div className="imgPreview">
+          <p>The address</p>
+          <p><strong>{props.addr2search}</strong></p>
+          <p> has registered:</p>
+          <p>{props.picCount}</p>
+          <p>{props.picCount == "1" ? 'picture' : 'pictures'}!</p>
+        </div>
+      );
+    } else {
+      return null;
+    }
+  }
+
+  
 }

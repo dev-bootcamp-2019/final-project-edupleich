@@ -24,6 +24,7 @@ contract PictureProof is Pausable {
 
     /* Events */
     event Registration(address addr, uint index, bytes32 hash); /* when a new Picture is registered */
+    event LookUp(address addr); /* when an address is looked up in the registry */
     event Removal(address remover, uint index); /* when a Picture registration is removed */
     event Transfer(address oldOwner, address newOwner, uint newIndex); /*  when a Picture registration is transferred to a new owner address */
     /*________________________________________________________________________________________________*/
@@ -72,6 +73,19 @@ contract PictureProof is Pausable {
         whenNotPaused
     {
         bytes32 pictureHash = digest(pictureData);
+
+        (bool registered,) = isRegistered(pictureHash);
+        require(!registered);
+
+        registry.push(Picture(pictureHash, msg.sender, now));
+
+        emit Registration(msg.sender, registry.length - 1, pictureHash);
+    }
+
+    function registerHash(bytes32 pictureHash)
+        external
+        whenNotPaused
+    {
 
         (bool registered,) = isRegistered(pictureHash);
         require(!registered);
@@ -137,7 +151,6 @@ contract PictureProof is Pausable {
     */
     function getRegistrationCount(address _owner)
         external
-        view
         returns (uint)
     {
         uint count = 0;
@@ -146,6 +159,7 @@ contract PictureProof is Pausable {
                 count++;
             }
         }
+        emit LookUp(msg.sender);
         return count;
     }
 
