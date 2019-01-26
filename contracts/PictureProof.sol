@@ -62,9 +62,6 @@ contract PictureProof is Pausable {
     }
 
     /**  An external method that allows the user to create a new Picture registration
-        from a string containing the Picture data. The string is typically a Sha3 hex hash of the
-        actual Picture, but can be any information really. Will generate a Registration event upon
-        completion. Method only available if contract is not paused.
         @param pictureData The data of the Picture. Typically a hex hash of the actual Picture
     */
     function register(string calldata pictureData)
@@ -95,10 +92,7 @@ contract PictureProof is Pausable {
         emit Registration(msg.sender, registry.length - 1, pictureHash);
     }
 
-    /**  An external view method that checks whether a Picture registration for
-        given Picture data exists. Returns true and the index of the registration if a
-        Picture registration exists, otherwise returns false and null. The method is
-        available even if the contract is paused, since no state changes are created.
+    /**  Checks whether a Picture registration for given Picture data exists.
         @param pictureData The data of the Picture. Typically a hex hash of the actual Picture
     */
     function checkRegistration(string calldata pictureData)
@@ -110,9 +104,7 @@ contract PictureProof is Pausable {
         return isRegistered(digest(pictureData));
     }
 
-    /** An external method with which a Picture registration can be removed. Only the owner of
-        the registration can remove the registration. Will generate a Removal event upon completion.
-        The method is not available when the contract is paused since it changes the state.
+    /** Method to have a  Picture registration can be removed. 
         @param index The index of the Picture registration to be removed
     */
     function remove(uint index)
@@ -126,10 +118,7 @@ contract PictureProof is Pausable {
         emit Removal(msg.sender, index);
     }
 
-    /** An external method that transfers the ownership over a Picture registration to a new
-        owner address. Checks that the new owner address is not the null address to prevent
-        an Picture registration from becoming unavailable. The method is not available when the
-        contract is paused since it changes the state. Generates a Transfer event upon completion.
+    /** An external method that transfers the ownership over a Picture registration to a new address
         @param index The index of the Picture registration to be transferred in the registry array.
         @param newOwner The address to which the registration ownership shall be transferred
     */
@@ -163,10 +152,9 @@ contract PictureProof is Pausable {
         return count;
     }
 
-    /** An internal view method that checks whether a registration for a given keccak256 hash exists.
+    /** Checks whether a registration for a given keccak256 hash exists.
         Returns true and the index of the registration in the registry array if a Picture registration
-        exists. Otherwise returns false and null. The method iterates through the whole registry
-        array and checks whether any registration contains the given keccak256 hash.
+        exists.
         @param pictureHash A keccak256 hash, whose existence of registration is to be checked
     */
     function isRegistered(bytes32 pictureHash)
@@ -184,7 +172,7 @@ contract PictureProof is Pausable {
     }
 
     /** A pure internal method that converts a given string input to bytes and creates the
-        keccak256 hash of those bytes. The method returns the computed keccak256 hash of the bytes
+        keccak256 hash of those bytes. 
     */
     function digest(string memory input)
         internal

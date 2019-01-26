@@ -6,15 +6,15 @@ The contract uses Open Zeppelin's Pausable contract, which was installed through
 
 ## Requirements
 This project requires you to have installed:
-1. [Ganache v6.1.6](https://truffleframework.com/ganache)
-1. [Truffle v4.1.13](https://truffleframework.com/)
-1. [npm v6.3.0](https://www.npmjs.com/)
+1. [Ganache](https://truffleframework.com/ganache)
+1. [Truffle](https://truffleframework.com/)
+1. [npm](https://www.npmjs.com/)
 1. [MetaMask](https://metamask.io/)
 1. [Git](https://git-scm.com/)
 
 
 ## Running project
-1. Set up a symlink from `client/` with `ln -s ../../build/contracts contracts`
+1. (Might need to) Set up a symlink from `client/` with `ln -s ../../build/contracts contracts`
 1. Run `npm install` from `client/`
 1. Start `Ganache` with `ganache-cli`
 1. Run `truffle compile` and `truffle migrate --reset`
@@ -28,5 +28,6 @@ This project requires you to have installed:
 
 ## Rinkeby Testnet
 The contract is deployed on the `Rinkeby` testnet with the address: `0x9Af94c0Ad8eC268374afd10B82ed7500D5Fa717f`
+Check at https://rinkeby.etherscan.io/address/0x94E226a72d46F27c9a9DFF7336acF9872137Ee2E
 
 
